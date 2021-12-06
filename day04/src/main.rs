@@ -1,11 +1,13 @@
 use std::str::FromStr;
+use std::num::ParseIntError;
 use std::collections::HashSet;
-use anyhow::{anyhow, bail};
+
+use anyhow::{bail, Context};
 
 const ROWS: usize = 5;
 const COLS: usize = 5;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Board {
     rows: [HashSet<i32>; ROWS],
     cols: [HashSet<i32>; COLS],
@@ -22,12 +24,15 @@ impl FromStr for Board {
             for (j, num) in line.split_whitespace()
                 .map(str::parse::<i32>).enumerate() {
                 let num = num?;
+
                 rows.get_mut(i)
-                    .ok_or(anyhow!("Board has more than {} rows", ROWS))?
-                    .insert(num);
+                    .with_context(||
+                        format!("Board has more than {} rows", ROWS)
+                    )?.insert(num);
                 cols.get_mut(j)
-                    .ok_or(anyhow!("Board has more than {} columns", COLS))?
-                    .insert(num);
+                    .with_context(||
+                        format!("Board has more than {} columns", COLS)
+                    )?.insert(num);
             }
         }
 
@@ -53,16 +58,10 @@ impl Board {
     }
 }
 
-fn part1(input: &str) -> anyhow::Result<i32> {
-    let mut input = input.split("\n\n");
-    let nums = input.next()
-        .ok_or(anyhow!("Empty input file"))?
-        .split(',')
-        .map(str::parse::<i32>);
-    let mut boards = input
-        .map(str::parse::<Board>)
-        .collect::<Result<Vec<_>, _>>()?;
-
+fn part1<I>(nums: I, mut boards: Vec<Board>) -> anyhow::Result<i32>
+where
+    I: Iterator<Item = Result<i32, ParseIntError>>,
+{
     for num in nums {
         let num = num?;
         for board in &mut boards {
@@ -75,44 +74,46 @@ fn part1(input: &str) -> anyhow::Result<i32> {
     bail!("Failed to find a winning board")
 }
 
-fn part2(input: &str) -> anyhow::Result<i32> {
-    let mut input = input.split("\n\n");
-    let nums = input.next()
-        .ok_or(anyhow!("Empty input file"))?
-        .split(',')
-        .map(str::parse::<i32>);
-    let mut boards = input
-        .map(str::parse::<Board>)
-        .collect::<Result<Vec<_>, _>>()?;
-
+// Part 2
+fn part2<I>(nums: I, mut boards: Vec<Board>) -> anyhow::Result<i32>
+where
+    I: Iterator<Item = Result<i32, ParseIntError>>,
+{
     for num in nums {
         let num = num?;
-        let mut winners = vec![];
         let board_count = boards.len();
-        for (i, board) in boards.iter_mut().enumerate() {
+        let mut new_boards = Vec::with_capacity(board_count);
+
+        for mut board in boards.into_iter() {
             if board.call(num) {
                 if board_count == 1 {
                     return Ok(board.sum() * num);
-                } else {
-                    winners.push(i);
                 }
+            } else {
+                new_boards.push(board);
             }
         }
-        boards = boards.into_iter()
-            .enumerate()
-            .filter(|(i, _)| !winners.contains(i))
-            .map(|(_, b)| b)
-            .collect();
+        boards = new_boards;
     }
 
     bail!("Failed to find a winning board")
 }
 
 pub fn main() -> anyhow::Result<()> {
-    let input = include_str!("../input.txt");
+    let mut input = include_str!("../input.txt").split("\n\n");
+    let nums = input.next()
+        .context("Empty input file")?
+        .split(',')
+        .map(str::parse::<i32>);
+    let boards = input
+        .map(str::parse::<Board>)
+        .collect::<Result<Vec<_>, _>>()?;
 
-    println!("{}", part1(input)?);
-    println!("{}", part2(input)?);
+    // Part 1
+    println!("{}", part1(nums.clone(), boards.clone())?);
+
+    // Part 2
+    println!("{}", part2(nums, boards)?);
 
     Ok(())
 }

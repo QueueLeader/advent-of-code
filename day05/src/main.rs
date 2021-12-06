@@ -96,7 +96,7 @@ impl Line {
 }
 
 fn count_overlaps<P>(
-    lines: &Vec<Line>,
+    lines: &[Line],
     map: &mut HashMap<Pair, i32>,
     predicate: P
 ) -> usize

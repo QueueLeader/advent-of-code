@@ -1,4 +1,4 @@
-use anyhow::{anyhow, bail};
+use anyhow::{bail, Context};
 
 // Part 1
 #[derive(Debug, Clone)]
@@ -91,8 +91,9 @@ fn bit_criteria(input: &str, common: bool) -> anyhow::Result<i32> {
 
         for line in &lines {
             if line.chars().nth(i)
-                .ok_or(anyhow!("Could not get char {} from \"{}\"", i, line))?
-                == '1' {
+                .with_context(||
+                    format!("Could not get char {} from \"{}\"", i, line)
+                )? == '1' {
                 ones += 1;
             }
         }

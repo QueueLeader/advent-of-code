@@ -1,5 +1,6 @@
 use std::str::FromStr;
-use anyhow::anyhow;
+
+use anyhow::{bail, Context};
 
 #[derive(Debug)]
 enum Command {
@@ -14,16 +15,16 @@ impl FromStr for Command {
     fn from_str(s: &str) -> anyhow::Result<Self> {
         let mut words = s.split(' ');
         let cmd = words.next()
-            .ok_or(anyhow!("Missing command"))?;
+            .context("Missing command")?;
         let num = words.next()
-            .ok_or(anyhow!("Missing number"))?
+            .context("Missing number")?
             .parse::<i32>()?;
 
         match cmd {
             "forward" => Ok(Self::Forward(num)),
             "up" => Ok(Self::Up(num)),
             "down" => Ok(Self::Down(num)),
-            _ => Err(anyhow!("Invalid command: {}", cmd))
+            _ => bail!("Invalid command: {}", cmd)
         }
     }
 }
