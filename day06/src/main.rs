@@ -51,13 +51,13 @@ pub fn main() -> anyhow::Result<()> {
     // Part 1
     println!(
         "{}",
-        fish.clone().step_days(80),
+        fish.step_days(80),
     );
 
     // Part 2
     println!(
         "{}",
-        fish.step_days(256),
+        fish.step_days(256 - 80),
     );
 
     Ok(())

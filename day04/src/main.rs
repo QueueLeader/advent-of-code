@@ -1,5 +1,4 @@
 use std::str::FromStr;
-use std::num::ParseIntError;
 use std::collections::HashSet;
 
 use anyhow::{bail, Context};
@@ -58,12 +57,8 @@ impl Board {
     }
 }
 
-fn part1<I>(nums: I, mut boards: Vec<Board>) -> anyhow::Result<i32>
-where
-    I: Iterator<Item = Result<i32, ParseIntError>>,
-{
-    for num in nums {
-        let num = num?;
+fn part1(nums: &[i32], mut boards: Vec<Board>) -> anyhow::Result<i32> {
+    for &num in nums {
         for board in &mut boards {
             if board.call(num) {
                 return Ok(board.sum() * num);
@@ -75,12 +70,8 @@ where
 }
 
 // Part 2
-fn part2<I>(nums: I, mut boards: Vec<Board>) -> anyhow::Result<i32>
-where
-    I: Iterator<Item = Result<i32, ParseIntError>>,
-{
-    for num in nums {
-        let num = num?;
+fn part2(nums: &[i32], mut boards: Vec<Board>) -> anyhow::Result<i32> {
+    for &num in nums {
         let board_count = boards.len();
         let mut new_boards = Vec::with_capacity(board_count);
 
@@ -104,16 +95,17 @@ pub fn main() -> anyhow::Result<()> {
     let nums = input.next()
         .context("Empty input file")?
         .split(',')
-        .map(str::parse::<i32>);
+        .map(str::parse::<i32>)
+        .collect::<Result<Vec<_>, _>>()?;
     let boards = input
         .map(str::parse::<Board>)
         .collect::<Result<Vec<_>, _>>()?;
 
     // Part 1
-    println!("{}", part1(nums.clone(), boards.clone())?);
+    println!("{}", part1(&nums, boards.clone())?);
 
     // Part 2
-    println!("{}", part2(nums, boards)?);
+    println!("{}", part2(&nums, boards)?);
 
     Ok(())
 }
