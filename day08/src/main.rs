@@ -27,7 +27,7 @@ fn get_signals(signals: &str) -> anyhow::Result<[HashSet<char>; 10]> {
     }
 
     let segs_in_2: HashSet<_> = known[8].difference(&known[4])
-        .cloned().collect();
+        .copied().collect();
 
     for signal in unknown.into_iter() {
         let sig_len = signal.len();
